@@ -82,7 +82,7 @@ const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
             await localStorage.removeItem('loggedUserInfo')
             setToken('');
             setLoggedUser({});
-            router.push('/')
+            // router.push('/')
         }catch(error){
             console.log(error);
         }        

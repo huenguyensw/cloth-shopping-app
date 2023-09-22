@@ -1,9 +1,9 @@
 import React, { useContext, useState, useEffect } from 'react'
-// import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { AuthContext } from '../context/AuthProvider'
 import FaceIcon from '@mui/icons-material/Face';
 import styled from 'styled-components';
-import axios from 'axios';
+import axios, {AxiosRequestConfig} from 'axios';
 
 interface userInfo {
   firstname: string | '',
@@ -29,9 +29,12 @@ const Profile = () => {
 
   const [profileImage, setProfileImage] = useState<any>({});
   const [image, setImage] = useState<any>('');
+  const Params = useParams();
+
 
   const handleFiles = (e: any) => {
     setProfileImage(e.target.files[0].name);
+    console.log(e.target.files[0].name)
 
     //render image
     var reader = new FileReader();
@@ -50,7 +53,9 @@ const Profile = () => {
       lastname: loggedUser?.lastname || ''
     });
     if(loggedUser.image){
-      setImage(encodeURI(loggedUser.image))
+      console.log(loggedUser.image)
+      const endpoint = encodeURI(loggedUser.image)
+      setImage(`http://localhost:3001/profileImages/${endpoint}`);
     }
   }, [loggedUser])
 
@@ -64,12 +69,18 @@ const Profile = () => {
   }
 
   const saveUserInformation = async (e: any) => {
+    e.preventDefault();
     var formData = new FormData();
-    formData.append('image', profileImage);
+    formData.append('userImage', e.target.profileImage.files[0]); 
     formData.append('firstname', userName.firstname);
     formData.append('lastname', userName.lastname);
+    
+    formData.forEach((value, key) => {
+      console.log(`${key}: ${value}`);
+    });
 
-    const config = {
+    
+    const options: AxiosRequestConfig = {
       headers: {
         "Content-Type": "multipart/form-data",
         "x-auth-token" : token,
@@ -78,9 +89,18 @@ const Profile = () => {
     }
 
     try{
-      const res = await axios.patch(`${URL}${loggedUser._id}`, formData, config);
+      const res = await axios.patch(`${URL}${loggedUser._id}`, formData, options);
+      console.log(res)
       if(res.status !== 200){
         throw new Error('Error updating product. Please try again later.')
+      }else {
+        console.log(res.status)
+        const updatedLoggedUser = {
+          ...loggedUser,
+          firstname: userName.firstname,
+          lastname: userName.lastname,
+        };
+        saveLoggedUser(updatedLoggedUser);
       }
     } catch(error){
       console.log(error)
@@ -91,27 +111,21 @@ const Profile = () => {
 
 
 
+
   return (
     <ProfileContainer>
       {loggedUser &&
-        <UserInfoContainer>
+        <UserInfoContainer onSubmit={saveUserInformation}>
           <div>
             {(image === '' || image === null)
               ? <FaceIcon sx={{ fontSize: 200 }} />
-              : <img src={`${URL}uploads/${image}`} width={450} height={400} alt='product-image'></img>}
-          </div>
-          <div>
+              : <img src={image} width={150} height={150} alt='profile-image'></img>}
+            <br/>
             Upload image file:
             <br />
             <input type="file" name='profileImage' onChange={handleFiles} />
           </div>
-          {/* <div>
-            {
-              loggedUser.image
-                ? <img src={`http://localhost:3001/ProfileImages/${loggedUser.image}`}></img>
-                : <FaceIcon sx={{ fontSize: 200 }} />
-            }
-          </div> */}
+         
           <div>
             <InfoField>Username: {loggedUser.username}</InfoField>
             <InfoField>Email: {loggedUser.email}</InfoField>
@@ -123,7 +137,7 @@ const Profile = () => {
               <label>Lastname: </label>
               <InputField type='text' name='lastname' value={userName.lastname} onChange={handleChangeUserInfo}></InputField>
             </InfoField>
-            <Button onClick={saveUserInformation}>Save</Button>
+            <Button type='submit'>Save</Button>
           </div>
         </UserInfoContainer>}
     </ProfileContainer>
@@ -135,7 +149,7 @@ export default Profile
 const ProfileContainer = styled.div`
 margin-top: 20px;`
 
-const UserInfoContainer = styled.div`
+const UserInfoContainer = styled.form`
 display: flex;
 flex-direction: row;
 justify-content: flex-start;
