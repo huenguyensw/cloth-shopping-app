@@ -63,8 +63,11 @@ const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
             if(result.status == '200'){
                 await localStorage.setItem('token', result.accessToken);
                 await localStorage.setItem('loggedUserInfo',JSON.stringify(result.data));
+                
+                const data = {...result.data, image: 'http://localhost:3001/profileImages/'+ result.data.image}
                 setToken(result.accessToken);
-                setLoggedUser(result.data);
+                setLoggedUser(data);
+                setLoggedUser
                 router.push('/')
             } else {
                 setLoginError(result.error);

@@ -29,7 +29,6 @@ const Profile = () => {
 
   const [profileImage, setProfileImage] = useState<any>({});
   const [image, setImage] = useState<any>('');
-  const Params = useParams();
 
 
   const handleFiles = (e: any) => {
@@ -55,7 +54,8 @@ const Profile = () => {
     if(loggedUser.image){
       console.log(loggedUser.image)
       const endpoint = encodeURI(loggedUser.image)
-      setImage(`http://localhost:3001/profileImages/${endpoint}`);
+      console.log(endpoint)
+      setImage(loggedUser.image);
     }
   }, [loggedUser])
 
@@ -99,6 +99,7 @@ const Profile = () => {
           ...loggedUser,
           firstname: userName.firstname,
           lastname: userName.lastname,
+          image: image,
         };
         saveLoggedUser(updatedLoggedUser);
       }
@@ -109,7 +110,7 @@ const Profile = () => {
   }
 
 
-
+console.log(image)
 
 
   return (
